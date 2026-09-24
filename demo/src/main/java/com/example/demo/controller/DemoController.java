@@ -1,5 +1,7 @@
 package com.example.demo.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -30,10 +32,14 @@ public class DemoController {
   }
 
   @GetMapping("/testdb")
-  public String getAllTestDBs(Model model) {
-    TestDB test = testService.findByName("홍길동");
-    model.addAttribute("data4", test);
-    System.out.println("데이터 출력 디버그 : " + test);
+public String getAllTestDBs(Model model) {
+    // 1명(홍길동)만 조회하던 것을 전체 목록(List) 조회로 변경
+    List<TestDB> testList = testService.getAllTestDBs(); // 또는 testService.findAll();
+    
+    // HTML로 전달하는 변수명을 data4로 설정
+    model.addAttribute("data4", testList);
+    
+    System.out.println("데이터 출력 디버그 : " + testList);
     return "testdb";
-  }
+}
 }

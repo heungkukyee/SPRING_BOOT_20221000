@@ -1,11 +1,30 @@
 <!doctype html>
 <html xmlns:th="http://www.thymeleaf.org">
   <head>
-    <title>데이터베이스 테스트</title>
+    <meta charset="UTF-8" />
+    <title>User List</title>
   </head>
   <body>
     <h1>User List</h1>
-    <p>아이디(기본키) : <span th:text="${data4.id}"></span></p>
-    <p>이름 : <span th:text="${data4.name}"></span></p>
+
+    <table border="1">
+      <thead>
+        <tr>
+          <th>아이디</th>
+          <th>이름</th>
+          <th>나이</th>
+          <th>성별</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- data4 목록에서 객체를 하나씩 꺼내어 표에 출력 -->
+        <tr th:each="user : ${data4}">
+          <td th:text="${user.id}">1</td>
+          <td th:text="${user.name}">홍길동</td>
+          <td th:text="${user.age}">25</td>
+          <td th:text="${user.gender}">남</td>
+        </tr>
+      </tbody>
+    </table>
   </body>
 </html>

@@ -5,12 +5,14 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.context.SecurityContextHolder;
 import com.example.demo.model.domain.Member;
 import com.example.demo.model.dto.MemberForm;
 import com.example.demo.model.repository.MemberRepository;
@@ -24,7 +26,7 @@ public class MemberService implements UserDetailsService {
   private PasswordEncoder passwordEncoder;
 
   // 관리자가 부여할 수 있는 권한 (화면에서 넘어온 값을 그대로 믿지 않는다)
-  private static final List<String> ROLES = List.of("USER", "ADMIN");
+  private static final List<String> ROLES = List.of("USER", "MANAGER", "ADMIN");
 
   public Member signup(MemberForm form) { // 회원가입
     if (memberRepository.existsByUsername(form.getUsername())) {
@@ -68,6 +70,7 @@ public class MemberService implements UserDetailsService {
     }
     Member member = memberRepository.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+        checkNotSelf(member); // 6주차 연습문제 자기 자신 권한 변경 금지
     member.setRole(role);
     memberRepository.save(member); // UPDATE (id 가 있으면 수정)
   }
@@ -76,6 +79,16 @@ public class MemberService implements UserDetailsService {
   public void deleteMember(Long id) { // 회원 삭제
     Member member = memberRepository.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+        checkNotSelf(member); // 6주차 연습문제 자기 자신 삭제 금지
     memberRepository.delete(member); // DELETE
+  }
+
+  // 대상 회원이 지금 로그인한 본인이면 거부
+  private void checkNotSelf(Member target) {
+    String currentUsername = SecurityContextHolder.getContext()
+        .getAuthentication().getName(); // 로그인한 아이디
+    if (target.getUsername().equals(currentUsername)) {
+      throw new IllegalArgumentException("자기 자신의 권한 변경·삭제는 할 수 없습니다.");
+    }
   }
 }

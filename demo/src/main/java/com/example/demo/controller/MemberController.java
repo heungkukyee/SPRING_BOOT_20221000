@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import java.security.Principal;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -29,6 +30,11 @@ public class MemberController {
 
   @PostMapping("/signup") // 회원가입 처리
   public String signup(MemberForm memberForm, Model model) {
+    // 비밀번호 확인 검증 : 다르면 가입 처리 없이 다시 가입 화면
+    if (!Objects.equals(memberForm.getPassword(), memberForm.getPasswordConfirm())) {
+      model.addAttribute("error", "비밀번호가 일치하지 않습니다."); // ${error}
+      return "signup";
+    }
     try {
       memberService.signup(memberForm);
     } catch (IllegalArgumentException e) { // 중복 아이디 등

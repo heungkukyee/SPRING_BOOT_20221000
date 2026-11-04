@@ -31,13 +31,15 @@ public class SecurityConfig {
             .permitAll()
             .requestMatchers("/css/**", "/js/**", "/images/**", "/fonts/**").permitAll()
             // .requestMatchers("/admin/**").hasRole("ADMIN") // [6주차] 관리자만
-            // [7주차] REST API로 관리자 접근 수정 
+            // [7주차] REST API로 관리자 접근 수정
             .requestMatchers("/admin/**", "/api/admin/**")
             .hasRole("ADMIN")
             // 6주차 testdb는 관리자·매니저만
             .requestMatchers("/testdb", "/testdb/**").hasAnyRole("ADMIN", "MANAGER")
             // 7주차 REST API : /api/hello 는 누구나 접근 가능
             .requestMatchers("/api/hello").permitAll()
+            // 9주차 게시판 목록·상세 : 누구나
+            .requestMatchers("/board", "/board/{id:\\d+}").permitAll()
             .anyRequest().authenticated())
         // 2. 폼 로그인 설정 (인증)
         .formLogin(form -> form

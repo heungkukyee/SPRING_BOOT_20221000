@@ -9,6 +9,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.demo.model.domain.Member;
@@ -27,6 +28,11 @@ public class PostService {
   public List<Post> findAll() { // 전체 목록 (최신 글이 위로)
     return postRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
   }
+
+  // 10주차 연습문제2: 작성자별 글 모아보기
+  public List<Post> findMyPosts(String username) {
+    return postRepository.findByAuthor_UsernameOrderByIdDesc(username);
+}
 
   public Post write(PostForm form, String username) { // 글쓰기 (작성자 = 로그인한 회원)
     validate(form);
@@ -87,5 +93,12 @@ public class PostService {
   private boolean isAdmin() { // 로그인한 사람이 관리자(ROLE_ADMIN)인지
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     return auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+  }
+
+  // 10주차 연습문제1: 조회수
+  @Transactional
+  public Post read(Long id) {
+    postRepository.incrementViewCount(id);
+    return findById(id);
   }
 }

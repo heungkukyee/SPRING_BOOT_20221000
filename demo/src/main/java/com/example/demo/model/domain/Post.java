@@ -21,6 +21,6 @@ public class Post {
   @Column(nullable = false) // 작성 시간
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt; // 수정 시간 (수정한 적 없으면 null)
-  @Column(nullable = false) // 조회수 (연습문제에서 사용)
+  @Column(nullable = false, updatable = false) // 조회수 (연습문제에서 사용)
   private int viewCount = 0;
 }

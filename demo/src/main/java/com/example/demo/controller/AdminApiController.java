@@ -19,10 +19,14 @@ public class AdminApiController {
   @Autowired
   MemberService memberService;
 
-  @GetMapping // 회원 목록 : GET /api/admin/members
-  public List<MemberResponse> list() {
-    List<Member> members = memberService.findAll();
-    return members.stream().map(MemberResponse::from).toList(); // 엔티티 목록 → DTO 목록
+  // 9주차 연습문제1: 회원 검색 API
+  @GetMapping
+  public List<MemberResponse> list(
+      @RequestParam(name = "keyword", required = false) String keyword) {
+    return memberService.searchMembers(keyword)
+        .stream()
+        .map(MemberResponse::from)
+        .toList();
   }
 
   @GetMapping("/{id}") // 회원 1명 : GET /api/admin/members/3
@@ -60,6 +64,17 @@ public class AdminApiController {
       memberService.deleteMember(id);
       return ResponseEntity.noContent().build(); // 204 No Content (돌려줄 본문 없음)
     } catch (IllegalArgumentException e) {
+      return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+    }
+  }
+
+  // 9주차 연습문제 2: 오류 처리 한 곳에 모으기
+  @RestControllerAdvice(assignableTypes = AdminApiController.class)
+  class AdminApiExceptionHandler {
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgument(
+        IllegalArgumentException e) {
       return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
     }
   }

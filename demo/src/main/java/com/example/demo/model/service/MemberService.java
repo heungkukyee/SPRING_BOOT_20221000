@@ -71,6 +71,17 @@ public class MemberService implements UserDetailsService {
     return memberRepository.findAll(Sort.by("id"));
   }
 
+  // 9주차 연습문제1: 회원 검색 API
+  public List<Member> searchMembers(String keyword) {
+    if (isBlank(keyword)) {
+      return findAll();
+    }
+
+    String searchTerm = keyword.strip();
+    return memberRepository.findByUsernameContainingOrNameContainingOrderByIdAsc(
+        searchTerm, searchTerm);
+  }
+
   @PreAuthorize("hasRole('ADMIN')") // 관리자만 실행 가능 (2차 잠금)
   public Member changeRole(Long id, String role) { // 권한 변경, ① void → Member
     if (!ROLES.contains(role)) { // 허용된 권한만

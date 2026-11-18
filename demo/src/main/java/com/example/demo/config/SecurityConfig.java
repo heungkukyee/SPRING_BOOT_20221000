@@ -40,6 +40,7 @@ public class SecurityConfig {
             .requestMatchers("/api/hello").permitAll()
             // 9주차 게시판 목록·상세 : 누구나
             .requestMatchers("/board", "/board/{id:\\d+}").permitAll()
+            .requestMatchers("/uploads/**").permitAll() // [11주차] 포스터 이미지 : 누구나 (올리기는 글쓰기라서 로그인)
             .anyRequest().authenticated())
         // 2. 폼 로그인 설정 (인증)
         .formLogin(form -> form

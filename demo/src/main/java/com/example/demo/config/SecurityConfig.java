@@ -41,6 +41,8 @@ public class SecurityConfig {
             // 9주차 게시판 목록·상세 : 누구나
             .requestMatchers("/board", "/board/{id:\\d+}").permitAll()
             .requestMatchers("/uploads/**").permitAll() // [11주차] 포스터 이미지 : 누구나 (올리기는 글쓰기라서 로그인)
+            .requestMatchers("/ws").permitAll() // [12주차] 실시간 연결 : 누구나
+            // (남은 자리는 비로그인도 본다, 개인 알림은 로그인한 사람만 받는다)
             .anyRequest().authenticated())
         // 2. 폼 로그인 설정 (인증)
         .formLogin(form -> form

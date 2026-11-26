@@ -1,14 +1,19 @@
 package com.example.demo.model.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Repository;
 
 import com.example.demo.model.domain.Member;
 import com.example.demo.model.domain.Post;
+
+import jakarta.persistence.LockModeType;
+
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -35,4 +40,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
   Page<Post> searchByAuthorName(@Param("name") String name, Pageable pageable);
 
   boolean existsByAuthor(Member author); // 이 회원이 쓴 글이 있는지
+
+  // 12주차 연습문제1: 신청 취소
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("SELECT p FROM Post p WHERE p.id = :id")
+  Optional<Post> findByIdForUpdate(@Param("id") Long id);
 }

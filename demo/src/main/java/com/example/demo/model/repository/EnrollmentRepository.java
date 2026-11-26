@@ -14,4 +14,8 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
 
   // 내 신청 내역 (최근 신청이 위로) : member → username 으로 찾기
   List<Enrollment> findByMember_UsernameOrderByIdDesc(String username);
+
+  // 12주차 연습문제2: 삭제 정리
+  boolean existsByPost(Post post);
+  boolean existsByMember(Member member);
 }

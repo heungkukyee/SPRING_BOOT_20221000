@@ -12,14 +12,20 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.example.demo.model.domain.Member;
 import com.example.demo.model.domain.Post;
 import com.example.demo.model.dto.PostForm;
+import com.example.demo.model.repository.EnrollmentRepository;
 import com.example.demo.model.repository.MemberRepository;
 import com.example.demo.model.repository.PostRepository;
+import com.example.demo.model.repository.EnrollmentRepository;
 
 @Service // 게시판 서비스
 public class PostService {
@@ -30,6 +36,10 @@ public class PostService {
 
   @Autowired // [11주차] 단계 2 : 업로드 파일 저장소 (제공 코드)
   private FileStore fileStore;
+
+  // 12주차 연습문제2: 삭제 정리
+  @Autowired
+  private EnrollmentRepository enrollmentRepository;
 
   public List<Post> findAll() { // 전체 목록 (최신 글이 위로)
     return postRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
@@ -136,11 +146,40 @@ public class PostService {
     return postRepository.save(post); // id 가 있으니 UPDATE
   }
 
-  public void delete(Long id) { // 글 삭제 (본인 또는 관리자)
-    Post post = findById(id);
-    if (!isAdmin())
-      checkWriter(post); // ★ 추가 : 관리자는 누구 글이든 삭제 가능
+  // public void delete(Long id) { // 글 삭제 (본인 또는 관리자)
+  // Post post = findById(id);
+  // if (!isAdmin())
+  // checkWriter(post); // ★ 추가 : 관리자는 누구 글이든 삭제 가능
+  // postRepository.delete(post);
+  // }
+
+  // 12주차 연습문제2: 삭제 정리
+  @Transactional(isolation = Isolation.READ_COMMITTED)
+  public boolean delete(Long id) {
+    Post post = postRepository.findByIdForUpdate(id)
+        .orElseThrow(() -> new ResponseStatusException(
+            HttpStatus.NOT_FOUND, "글이 존재하지 않습니다."));
+
+    if (!isAdmin()) {
+      checkWriter(post);
+    }
+
+    if (enrollmentRepository.existsByPost(post)) {
+      return false;
+    }
+
+    String posterFile = post.getPosterFile();
     postRepository.delete(post);
+
+    TransactionSynchronizationManager.registerSynchronization(
+        new TransactionSynchronization() {
+          @Override
+          public void afterCommit() {
+            fileStore.delete(posterFile);
+          }
+        });
+
+    return true;
   }
 
   private void checkWriter(Post post) { // 로그인한 사람이 글쓴이인지 → 아니면 403

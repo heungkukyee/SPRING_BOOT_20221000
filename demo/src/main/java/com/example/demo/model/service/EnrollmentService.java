@@ -5,10 +5,14 @@ import java.util.Collection;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 // import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.context.ApplicationEventPublisher; // 추가
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.example.demo.model.domain.Enrollment;
 import com.example.demo.model.domain.Member;
@@ -72,6 +76,31 @@ public class EnrollmentService {
             post.getId()));
       }
     }
-    return postIds.size();
+        return postIds.size();
+  }
+
+  // 12주차 연습문제 1: 신청 취소
+  @Transactional(isolation = Isolation.READ_COMMITTED)
+  public void cancel(Long id, String username) {
+    Enrollment enrollment = enrollmentRepository.findById(id)
+        .orElseThrow(() -> new ResponseStatusException(
+            HttpStatus.NOT_FOUND, "신청 내역이 존재하지 않습니다."));
+
+    if (!username.equals(enrollment.getMember().getUsername())) {
+      throw new AccessDeniedException("본인의 신청만 취소할 수 있습니다.");
+    }
+
+    Post post = postRepository.findByIdForUpdate(enrollment.getPost().getId())
+        .orElseThrow(() -> new ResponseStatusException(
+            HttpStatus.NOT_FOUND, "모집글이 존재하지 않습니다."));
+
+    if (!enrollmentRepository.existsById(id)) {
+      throw new ResponseStatusException(
+          HttpStatus.NOT_FOUND, "신청 내역이 존재하지 않습니다.");
+    }
+
+    enrollmentRepository.delete(enrollment);
+    post.setAppliedCount(post.getAppliedCount() - 1);
+    eventPublisher.publishEvent(SeatMessage.from(post));
   }
 }

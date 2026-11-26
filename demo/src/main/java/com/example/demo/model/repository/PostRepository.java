@@ -21,11 +21,18 @@ public interface PostRepository extends JpaRepository<Post, Long> {
   void incrementViewCount(@Param("id") Long id);
 
   // 10주차 연습문제2: 작성자별 글 모아보기
-  List<Post> findByAuthor_UsernameOrderByIdDesc(String username);
+  // List<Post> findByAuthor_UsernameOrderByIdDesc(String username);
+
+  // 11주차 연습문제1: 내가 쓴 글 페이징
+  Page<Post> findByAuthor_Username(String username, Pageable pageable);
 
   // [11주차] 단계 2 : 제목 또는 내용에 검색어가 들어간 글 (JPQL)
   @Query("SELECT p FROM Post p WHERE p.title LIKE %:keyword% OR p.content LIKE %:keyword%")
   Page<Post> search(@Param("keyword") String keyword, Pageable pageable);
+
+  // 11주차 연습문제2: 작성자로 검색
+  @Query("SELECT p FROM Post p WHERE p.author.name LIKE %:name%")
+  Page<Post> searchByAuthorName(@Param("name") String name, Pageable pageable);
 
   boolean existsByAuthor(Member author); // 이 회원이 쓴 글이 있는지
 }

@@ -36,8 +36,18 @@ public class PostService {
   }
 
   // 10주차 연습문제2: 작성자별 글 모아보기
-  public List<Post> findMyPosts(String username) {
-    return postRepository.findByAuthor_UsernameOrderByIdDesc(username);
+  // public List<Post> findMyPosts(String username) {
+  // return postRepository.findByAuthor_UsernameOrderByIdDesc(username);
+  // }
+
+  // 11주차 연습문제1: 내가 쓴 글 페이징
+  public Page<Post> findMyPosts(String username, int page) {
+    PageRequest pageable = PageRequest.of(
+        Math.max(page, 0),
+        PAGE_SIZE,
+        Sort.by(Sort.Direction.DESC, "id"));
+
+    return postRepository.findByAuthor_Username(username, pageable);
   }
 
   public Post write(PostForm form, String username) { // 글쓰기 (작성자 = 로그인한 회원)
@@ -72,12 +82,33 @@ public class PostService {
 
   // [10주차] 단계 1 : 페이지 목록 (page 는 0 부터)
   // [10주차] 단계 2 : 페이지 목록 + 검색 (검색어가 없으면 전체)
-  public Page<Post> findPage(String keyword, int page) {
-    PageRequest pageable = PageRequest.of(Math.max(page, 0), PAGE_SIZE, Sort.by(Sort.Direction.DESC, "id"));
-    if (keyword == null || keyword.isBlank()) { // 앞이 true면 뒤를 실행하지 않음
+  // public Page<Post> findPage(String keyword, int page) {
+  // PageRequest pageable = PageRequest.of(Math.max(page, 0), PAGE_SIZE,
+  // Sort.by(Sort.Direction.DESC, "id"));
+  // if (keyword == null || keyword.isBlank()) { // 앞이 true면 뒤를 실행하지 않음
+  // return postRepository.findAll(pageable);
+  // }
+  // return postRepository.search(keyword.trim(), pageable); // 검색 결과도 10개씩
+  // }
+
+  // 11주차 연습문제2: 작성자로 검색
+  public Page<Post> findPage(String keyword, String type, int page) {
+    PageRequest pageable = PageRequest.of(
+        Math.max(page, 0),
+        PAGE_SIZE,
+        Sort.by(Sort.Direction.DESC, "id"));
+
+    if (keyword == null || keyword.isBlank()) {
       return postRepository.findAll(pageable);
     }
-    return postRepository.search(keyword.trim(), pageable); // 검색 결과도 10개씩
+
+    String searchTerm = keyword.trim();
+
+    if ("writer".equals(type)) {
+      return postRepository.searchByAuthorName(searchTerm, pageable);
+    }
+
+    return postRepository.search(searchTerm, pageable);
   }
 
   // [11주차] 단계 3 : 바구니에 담긴 글들 (번호 목록으로 한 번에)

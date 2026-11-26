@@ -28,22 +28,55 @@ public class BoardController {
   // return "board/list";
   // }
 
-  @GetMapping // 목록 : GET /board?page=0&keyword=스프링 (누구나)
-  public String list(@RequestParam(defaultValue = "0") int page,
-      @RequestParam(required = false) String keyword, Model model) {
-    Page<Post> posts = postService.findPage(keyword, page);
+  // @GetMapping // 목록 : GET /board?page=0&keyword=스프링 (누구나)
+  // public String list(@RequestParam(defaultValue = "0") int page,
+  // @RequestParam(required = false) String keyword, Model model) {
+  // Page<Post> posts = postService.findPage(keyword, page);
+  // model.addAttribute("posts", posts.getContent());
+  // model.addAttribute("page", posts);
+  // model.addAttribute("keyword", keyword); // 검색창에 검색어 유지, 페이지 링크에도 붙인다
+  // return "board/list";
+  // }
+
+  // 11주차 연습문제2: 작성자로 검색
+  @GetMapping
+  public String list(
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(required = false) String keyword,
+      @RequestParam(defaultValue = "all") String type,
+      Model model) {
+    Page<Post> posts = postService.findPage(keyword, type, page);
+
     model.addAttribute("posts", posts.getContent());
     model.addAttribute("page", posts);
-    model.addAttribute("keyword", keyword); // 검색창에 검색어 유지, 페이지 링크에도 붙인다
+    model.addAttribute("keyword", keyword);
+    model.addAttribute("type", type);
+
     return "board/list";
   }
 
-  // 10주차 연습문제2: 작성자별 글 모아보기
+  // // 10주차 연습문제2: 작성자별 글 모아보기
+  // @GetMapping("/my")
+  // public String myPosts(Principal principal, Model model) {
+  // List<Post> posts = postService.findMyPosts(principal.getName());
+  // model.addAttribute("posts", posts);
+  // model.addAttribute("listTitle", "내가 쓴 글");
+  // return "board/list";
+  // }
+
+  // 11주차 연습문제1: 내가 쓴 글 페이징
   @GetMapping("/my")
-  public String myPosts(Principal principal, Model model) {
-    List<Post> posts = postService.findMyPosts(principal.getName());
-    model.addAttribute("posts", posts);
+  public String myPosts(
+      @RequestParam(defaultValue = "0") int page,
+      Principal principal,
+      Model model) {
+    Page<Post> posts = postService.findMyPosts(principal.getName(), page);
+
+    model.addAttribute("posts", posts.getContent());
+    model.addAttribute("page", posts);
+    model.addAttribute("pageUrl", "/board/my");
     model.addAttribute("listTitle", "내가 쓴 글");
+
     return "board/list";
   }
 

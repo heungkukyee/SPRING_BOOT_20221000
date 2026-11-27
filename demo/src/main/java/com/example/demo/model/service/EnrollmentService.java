@@ -76,7 +76,7 @@ public class EnrollmentService {
             post.getId()));
       }
     }
-        return postIds.size();
+    return postIds.size();
   }
 
   // 12주차 연습문제 1: 신청 취소
@@ -102,5 +102,11 @@ public class EnrollmentService {
     enrollmentRepository.delete(enrollment);
     post.setAppliedCount(post.getAppliedCount() - 1);
     eventPublisher.publishEvent(SeatMessage.from(post));
+
+    // 13주차 연습문제1: 취소 실시간
+    eventPublisher.publishEvent(new Notification(
+        post.getAuthor().getUsername(),
+        enrollment.getMember().getName() + "님이 '" + post.getTitle() + "' 신청을 취소했습니다.",
+        post.getId()));
   }
 }
